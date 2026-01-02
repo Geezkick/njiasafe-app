@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: nijasafe-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+
+  redis:
+    image: redis:alpine
+    container_name: nijasafe-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build: ../backend
+    container_name: nijasafe-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:password123@mongodb:27017/nijasafe?authSource=admin
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ../backend:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
+  redis_data:
